@@ -34,7 +34,7 @@ export default function NewLessonPage() {
       }
 
       // Call generate API
-      const response = await fetch('/api/lesson-plans/generate', {
+      const response = await fetch('/api/lesson-plan/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,13 +49,22 @@ export default function NewLessonPage() {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate lesson plan');
+      // Safely parse response body (handle empty or non-JSON responses)
+      const text = await response.text();
+      let responseData: any = null;
+      try {
+        responseData = text ? JSON.parse(text) : null;
+      } catch (err) {
+        console.warn('Response is not valid JSON:', err, text?.slice(0, 200));
+        responseData = null;
       }
 
-      const responseData = await response.json();
-      console.log('Lesson plan created:', responseData.lessonPlan);
+      if (!response.ok) {
+        const errMsg = responseData?.error || text || 'Failed to generate lesson plan';
+        throw new Error(errMsg);
+      }
+
+      console.log('Lesson plan created:', responseData?.lessonPlan ?? responseData);
       router.push('/dashboard');
     } catch (error) {
       console.error('Error:', error);

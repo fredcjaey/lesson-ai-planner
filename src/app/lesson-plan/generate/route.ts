@@ -44,6 +44,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log request for debugging
+    console.log('Generate lesson plan request body:', body);
+    console.log('OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
+
     // Generate lesson plan using OpenAI
     const generatedPlan = await generateLessonPlan({
       title,
@@ -91,9 +95,7 @@ ${generatedPlan.assessment}
     });
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate lesson plan' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

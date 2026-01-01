@@ -1,5 +1,9 @@
 import OpenAI from 'openai';
 
+if (!process.env.OPENAI_API_KEY) {
+  console.error('OPENAI_API_KEY is not set in environment variables');
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -74,8 +78,8 @@ Return ONLY valid JSON, no additional text.
   `;
 
   try {
-    const message = await (openai as any).messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const message = await openai.chat.completions.create({
+      model: 'gpt-4-turbo',
       max_tokens: 2000,
       messages: [
         {
@@ -86,20 +90,31 @@ Return ONLY valid JSON, no additional text.
     });
 
     // Extract text from response
-    const responseText =
-      message.content[0].type === 'text' ? message.content[0].text : '';
-
-    // Parse JSON from response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Could not parse JSON from response');
+    const responseText = message.choices[0]?.message?.content || '';
+    console.log('OpenAI Response:', responseText.substring(0, 200));
+    
+    if (!responseText) {
+      throw new Error('Empty response from OpenAI');
     }
 
-    const lessonPlan: GeneratedLessonPlan = JSON.parse(jsonMatch[0]);
-    return lessonPlan;
+    // Parse JSON from response - try multiple patterns
+    let jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('Failed to extract JSON. Response:', responseText);
+      throw new Error(`Could not parse JSON from response: ${responseText.substring(0, 100)}`);
+    }
+
+    try {
+      const lessonPlan: GeneratedLessonPlan = JSON.parse(jsonMatch[0]);
+      return lessonPlan;
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError, 'Input:', jsonMatch[0].substring(0, 200));
+      throw new Error(`Invalid JSON in response: ${parseError}`);
+    }
   } catch (error) {
     console.error('Error generating lesson plan:', error);
-    throw new Error('Failed to generate lesson plan');
+    if (error instanceof Error) throw error;
+    throw new Error(String(error));
   }
 }
 
@@ -144,8 +159,8 @@ Return ONLY valid JSON array, no additional text.
   `;
 
   try {
-    const message = await (openai as any).messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const message = await openai.chat.completions.create({
+      model: 'gpt-4-turbo',
       max_tokens: 2000,
       messages: [
         {
@@ -155,8 +170,10 @@ Return ONLY valid JSON array, no additional text.
       ],
     });
 
-    const responseText =
-      message.content[0].type === 'text' ? message.content[0].text : '';
+    const responseText = message.choices[0]?.message?.content || '';
+    if (!responseText) {
+      throw new Error('Empty response from OpenAI');
+    }
 
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
@@ -190,8 +207,8 @@ Return ONLY valid JSON array, no additional text.
   `;
 
   try {
-    const message = await (openai as any).messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const message = await openai.chat.completions.create({
+      model: 'gpt-4-turbo',
       max_tokens: 1500,
       messages: [
         {
@@ -201,8 +218,10 @@ Return ONLY valid JSON array, no additional text.
       ],
     });
 
-    const responseText =
-      message.content[0].type === 'text' ? message.content[0].text : '';
+    const responseText = message.choices[0]?.message?.content || '';
+    if (!responseText) {
+      throw new Error('Empty response from OpenAI');
+    }
 
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
