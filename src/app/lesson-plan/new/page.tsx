@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { lessonPlanService } from '@/lib/db';
 
 export default function NewLessonPage() {
   const router = useRouter();
@@ -16,55 +15,55 @@ export default function NewLessonPage() {
     objectives: '',
   });
 
-const handleSubmit = async () => {
-  setLoading(true);
+  const handleSubmit = async () => {
+    setLoading(true);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    router.push('/auth/login');
-    return;
-  }
-
-  try {
-    // Get auth token
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
-
-    if (!token) {
-      throw new Error('No auth token');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push('/auth/login');
+      return;
     }
 
-    // Call generate API
-    const response = await fetch('/api/lesson-plans/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title: formData.title,
-        subject: formData.subject,
-        grade_level: formData.grade_level,
-        duration_minutes: formData.duration_minutes,
-        objectives: formData.objectives.split('\n').filter(o => o.trim()),
-      }),
-    });
+    try {
+      // Get auth token
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to generate lesson plan');
+      if (!token) {
+        throw new Error('No auth token');
+      }
+
+      // Call generate API
+      const response = await fetch('/api/lesson-plans/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          subject: formData.subject,
+          grade_level: formData.grade_level,
+          duration_minutes: formData.duration_minutes,
+          objectives: formData.objectives.split('\n').filter(o => o.trim()),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate lesson plan');
+      }
+
+      const responseData = await response.json();
+      console.log('Lesson plan created:', responseData.lessonPlan);
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to create lesson plan');
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-    console.log('Lesson plan created:', data.lessonPlan);
-    router.push('/dashboard');
-  } catch (error) {
-    console.error('Error:', error);
-    alert(error instanceof Error ? error.message : 'Failed to create lesson plan');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
