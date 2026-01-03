@@ -101,10 +101,10 @@ export async function transcribeVideo(
   formData.append('file', audioBlob, 'audio.webm');
   formData.append('model', 'whisper-1');
 
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+  const response = await fetch('https://openrouter.ai/api/v1/audio/transcriptions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: formData,
   });

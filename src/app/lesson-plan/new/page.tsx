@@ -18,13 +18,13 @@ export default function NewLessonPage() {
   const handleSubmit = async () => {
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
-
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+
       // Get auth token
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;

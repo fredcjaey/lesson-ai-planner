@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { LessonPlan } from '@/types';
-import { ArrowLeft, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function LessonPlanPage() {
   const router = useRouter();

@@ -6,6 +6,7 @@ if (!process.env.OPENAI_API_KEY) {
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
 });
 
 export interface LessonPlanRequest {
@@ -79,7 +80,7 @@ Return ONLY valid JSON, no additional text.
 
   try {
     const message = await openai.chat.completions.create({
-      model: 'gpt-4-turbo',
+      model: 'gpt-3.5-turbo',
       max_tokens: 2000,
       messages: [
         {
@@ -91,10 +92,10 @@ Return ONLY valid JSON, no additional text.
 
     // Extract text from response
     const responseText = message.choices[0]?.message?.content || '';
-    console.log('OpenAI Response:', responseText.substring(0, 200));
+    console.log('OpenRouter Response:', responseText.substring(0, 200));
     
     if (!responseText) {
-      throw new Error('Empty response from OpenAI');
+      throw new Error('Empty response from OpenRouter');
     }
 
     // Parse JSON from response - try multiple patterns
@@ -160,7 +161,7 @@ Return ONLY valid JSON array, no additional text.
 
   try {
     const message = await openai.chat.completions.create({
-      model: 'gpt-4-turbo',
+      model: 'gpt-3.5-turbo',
       max_tokens: 2000,
       messages: [
         {
@@ -172,7 +173,7 @@ Return ONLY valid JSON array, no additional text.
 
     const responseText = message.choices[0]?.message?.content || '';
     if (!responseText) {
-      throw new Error('Empty response from OpenAI');
+      throw new Error('Empty response from OpenRouter');
     }
 
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
@@ -208,7 +209,7 @@ Return ONLY valid JSON array, no additional text.
 
   try {
     const message = await openai.chat.completions.create({
-      model: 'gpt-4-turbo',
+      model: 'gpt-3.5-turbo',
       max_tokens: 1500,
       messages: [
         {
@@ -220,7 +221,7 @@ Return ONLY valid JSON array, no additional text.
 
     const responseText = message.choices[0]?.message?.content || '';
     if (!responseText) {
-      throw new Error('Empty response from OpenAI');
+      throw new Error('Empty response from OpenRouter');
     }
 
     const jsonMatch = responseText.match(/\[[\s\S]*\]/);
